@@ -57,15 +57,24 @@ function InnerAvatarModel(_, forwardedRef) {
         if (keysPressed.current.has('s')) moveDir.sub(camDir);
         if (keysPressed.current.has('a')) moveDir.sub(camRight);
         if (keysPressed.current.has('d')) moveDir.add(camRight);
+        if (keysPressed.current.has('q')) moveDir.y += 1;
+        if (keysPressed.current.has('e')) moveDir.y -= 1;
+
 
         if (moveDir.length() > 0) {
             moveDir.normalize().multiplyScalar(0.1);
-
             const nextPos = position.clone().add(moveDir);
-            setPosition(nextPos);
 
-            const targetLook = avatarRef.current.position.clone().add(moveDir);
-            avatarRef.current.lookAt(targetLook);
+            const blocked = interactiveZones.some(zone => {
+                const d = nextPos.distanceTo(zone.position);
+                return d < 2.0; // tune collision radius as needed
+            });
+
+            if (!blocked) {
+                setPosition(nextPos);
+                const targetLook = avatarRef.current.position.clone().add(moveDir);
+                avatarRef.current.lookAt(targetLook);
+            }
         }
 
         // Detect proximity to interactive zones
@@ -84,7 +93,7 @@ function InnerAvatarModel(_, forwardedRef) {
             object={scene}
             ref={avatarRef}
             scale={0.5}
-            position={[0, 0, 0]}
+            position={[0, 0.5, 0]}
         />
     );
 }
